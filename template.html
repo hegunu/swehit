@@ -1,0 +1,632 @@
+<title>Svenska hitmakare</title>
+<meta name="description" content="Svenska låtskrivare, producenter och artister bakom internationella hits.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* Layout: liner-notes credits. Sticky masthead with tabs; each view is index list (left) + credit sheet (right); network view is a full-bleed canvas with a side sheet. */
+:root{
+  --paper:#f3f4f1; --sheet:#ffffff; --ink:#151a2b; --ink-2:#4a5068; --ink-3:#7d8296;
+  --rule:#d9dbe0; --rule-2:#e8e9ec;
+  --blue:#1f3fbf; --blue-soft:#e3e8fb; --gold:#e0a500; --gold-soft:#fbf0cf; --gold-ink:#7a5900;
+  --node-artist:#9aa0b4; --hit:#c2410c;
+  --f-display:"Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0e1220; --sheet:#151a2b; --ink:#eceef5; --ink-2:#b4b9cc; --ink-3:#7f859c;
+  --rule:#2a3048; --rule-2:#20263a;
+  --blue:#8ea3ff; --blue-soft:#222c55; --gold:#f2c230; --gold-soft:#3a3115; --gold-ink:#f2c230;
+  --node-artist:#5d6380; --hit:#fb923c; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --paper:#0e1220; --sheet:#151a2b; --ink:#eceef5; --ink-2:#b4b9cc; --ink-3:#7f859c;
+  --rule:#2a3048; --rule-2:#20263a;
+  --blue:#8ea3ff; --blue-soft:#222c55; --gold:#f2c230; --gold-soft:#3a3115; --gold-ink:#f2c230;
+  --node-artist:#5d6380; --hit:#fb923c; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-display);font-size:15px;line-height:1.45}
+a{color:var(--blue)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:clamp(16px,3vw,32px)}
+
+/* masthead */
+.mast{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+.mast .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;min-width:0}
+.brand b{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.tabs{display:flex;gap:4px;background:var(--rule-2);padding:3px;border-radius:999px}
+.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:500;color:var(--ink-2)}
+.lang{display:flex;gap:2px;border:1px solid var(--rule);border-radius:999px;padding:2px}
+.lang button{border:0;background:transparent;border-radius:999px;padding:4px 9px;cursor:pointer;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.05em;color:var(--ink-3)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tabs button[aria-selected="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* hero */
+.hero{padding-block:36px 20px}
+.hero h1{font-size:clamp(30px,5vw,56px);line-height:1.02;letter-spacing:-.025em;font-weight:700;margin:0;max-width:16ch;text-wrap:balance}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero p{font-family:var(--f-body);font-size:18px;color:var(--ink-2);max-width:60ch;margin:14px 0 0}
+.stats{display:flex;flex-wrap:wrap;gap:28px;margin-top:22px;font-variant-numeric:tabular-nums}
+.stat b{display:block;font-size:30px;font-weight:600;letter-spacing:-.02em}
+.stat.clickable{all:unset;cursor:pointer;border-radius:8px;padding:4px 8px;margin:-4px -8px;transition:background .15s}
+.stat.clickable:hover{background:var(--blue-soft)}
+.stat.clickable:hover b,.stat.clickable[aria-pressed="true"] b{color:var(--blue)}
+.stat.clickable[aria-pressed="true"]{background:var(--blue-soft)}
+.stat.clickable:focus-visible{outline:2px solid var(--blue)}
+.stat.clickable b{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:6px;text-decoration-color:var(--rule)}
+.fchip{border:1px solid var(--blue);background:var(--blue-soft);color:var(--blue);border-radius:999px;padding:1px 9px;font:inherit;cursor:pointer}
+.stat span{font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+
+/* views */
+.view{padding-block:8px 48px}
+.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
+.panel{min-width:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.search{flex:1 1 220px;min-width:0;position:relative}
+.search input{width:100%;padding:10px 12px 10px 34px;border:1px solid var(--rule);background:var(--sheet);border-radius:var(--r);font:inherit;color:var(--ink)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+select,.chip{border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.count{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);margin:4px 0 8px}
+
+.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.list li{border-bottom:1px solid var(--rule)}
+.row{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:10px 6px;cursor:pointer}
+.row:hover{background:var(--sheet)}
+.row[aria-current="true"]{background:var(--blue-soft)}
+.yr{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tt{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ar{color:var(--ink-2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dots{display:flex;gap:3px;align-items:center}
+.ini{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--gold-soft);color:var(--gold-ink);font-size:10px;font-weight:700;letter-spacing:.02em;border:1px solid color-mix(in srgb,var(--gold) 40%,transparent)}
+.more{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-left:2px}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:10.5px;padding:1px 6px;border-radius:4px;border:1px solid currentColor;color:var(--hit);margin-left:6px;vertical-align:1px;white-space:nowrap}
+.pager{display:flex;justify-content:center;padding:14px}
+.pager button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:8px 18px;cursor:pointer}
+
+/* credit sheet */
+.sheet{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:22px;max-height:calc(100vh - 100px);overflow:auto}
+.sheet .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.sheet h2{font-size:30px;line-height:1.08;letter-spacing:-.02em;margin:6px 0 4px;text-wrap:balance}
+.sheet .by{font-family:var(--f-body);font-size:18px;color:var(--ink-2)}
+.sheet .by button{all:unset;cursor:pointer;color:var(--ink);border-bottom:1px dotted var(--ink-3)}
+.facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 4px;font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.sec{margin-top:20px}
+.sec h3{font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.credits{display:grid;gap:6px}
+.credit{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);cursor:pointer;text-align:left;width:100%}
+.credit:hover{border-color:var(--blue)}
+.credit .ini{width:36px;height:36px;font-size:12px}
+.credit b{display:block}
+.credit small{color:var(--ink-3);font-size:12.5px}
+.role{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:999px;background:var(--blue-soft);color:var(--blue);white-space:nowrap}
+.others{font-family:var(--f-body);font-size:15.5px;color:var(--ink-2)}
+.others b{font-family:var(--f-mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-right:6px}
+.bio{font-family:var(--f-body);font-size:17px;line-height:1.5;color:var(--ink);margin:10px 0 0;max-width:62ch}
+.mini{list-style:none;margin:0;padding:0}
+.mini li button{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;cursor:pointer}
+.mini li button:hover{color:var(--blue)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer}
+.pill:hover{border-color:var(--blue);color:var(--blue)}
+.pill i{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-left:4px}
+.spark{width:100%;height:auto;display:block}
+.spark text{font-family:var(--f-mono);font-size:10px;fill:var(--ink-3)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:999px;padding:7px 14px;cursor:pointer;font-size:13px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.empty{color:var(--ink-3);font-family:var(--f-body);font-size:17px;padding:30px 4px}
+.close{display:none}
+
+/* people grid rows */
+.prow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:9px 6px;cursor:pointer}
+.prow:hover{background:var(--sheet)}
+.prow[aria-current="true"]{background:var(--blue-soft)}
+.prow .ini{width:34px;height:34px;font-size:11px}
+.bar{height:6px;border-radius:3px;background:var(--gold);display:block;margin-top:5px;max-width:100%}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink-2);text-align:right}
+
+/* graph */
+.graphbox{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+.stage{position:relative;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;height:min(76vh,780px);min-height:440px;overflow:hidden}
+.stage svg{width:100%;height:100%;display:block;cursor:grab}
+.stage svg:active{cursor:grabbing}
+.legend{position:absolute;left:12px;bottom:10px;display:flex;gap:14px;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);background:color-mix(in srgb,var(--sheet) 85%,transparent);padding:6px 10px;border-radius:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.gtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.gtools label{font-family:var(--f-mono);font-size:12px;color:var(--ink-2);display:flex;gap:8px;align-items:center}
+.node text{font-family:var(--f-display);font-size:11px;fill:var(--ink);paint-order:stroke;stroke:var(--sheet);stroke-width:3px;pointer-events:none}
+.link{stroke:var(--ink-3);stroke-opacity:.22}
+.dim{opacity:.12}
+.hint{font-family:var(--f-body);color:var(--ink-2);font-size:15px;margin:0 0 10px}
+
+@media (max-width: 600px){.brand span{display:none}}
+@media (max-width: 900px){
+  .split,.graphbox{grid-template-columns:minmax(0,1fr)}
+  .sheet{position:fixed;inset:auto 0 0 0;top:auto;max-height:82vh;border-radius:16px 16px 0 0;z-index:40;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.25);transform:translateY(105%);transition:transform .25s ease}
+  .sheet.open{transform:none}
+  .close{display:inline-block;position:absolute;right:12px;top:12px;border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:4px 12px;cursor:pointer}
+  .graphbox .sheet{position:fixed}
+  .hero{padding-block:22px 10px}
+  .stats{gap:18px}.stat b{font-size:24px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+.foot{border-top:1px solid var(--rule);padding-block:20px 40px;font-family:var(--f-body);color:var(--ink-3);font-size:14px}
+.foot a{color:inherit;text-decoration:underline}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="brand"><b>Svenska hitmakare</b><span id="brandsub" data-i="brandsub">krediter från Wikipedia</span></div>
+    <nav class="tabs" role="tablist" aria-label="Vy" data-ia="viewLabel">
+      <button role="tab" id="tab-latar" aria-selected="true" data-view="latar" data-i="tabSongs">Låtar</button>
+      <button role="tab" id="tab-personer" aria-selected="false" data-view="personer" data-i="tabPeople">Personer</button>
+      <button role="tab" id="tab-natverk" aria-selected="false" data-view="natverk" data-i="tabNet">Nätverk</button>
+    </nav>
+    <div class="lang" role="group" aria-label="Språk / Language"><button data-lang="sv" aria-pressed="true" title="Svenska">SV</button><button data-lang="en" aria-pressed="false" title="English">EN</button></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1 data-ih="heroH">Svenska namn bakom <em>världens hits</em></h1>
+    <p id="heroP" data-i="heroP">Bläddra bland låtarna och se vilka svenskar som skrev, producerade eller framförde dem. Klicka på en person för att se allt den varit med om, eller surfa runt i nätverket.</p>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <!-- SONGS -->
+  <section class="view" id="view-latar">
+    <div class="split">
+      <div class="panel">
+        <div class="tools">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="q-songs" type="search" placeholder="Sök låt, artist eller svensk…" aria-label="Sök låtar" data-ip="qSongs" autocomplete="off">
+          </div>
+          <select id="sort-songs" aria-label="Sortering">
+            <option value="hit" data-i="sortHit">Störst hits först</option>
+            <option value="new" data-i="sortNew">Nyast först</option>
+            <option value="old" data-i="sortOld">Äldst först</option>
+            <option value="title" data-i="sortTitle">Titel A–Ö</option>
+            <option value="swedes" data-i="sortSwedes">Flest svenskar</option>
+          </select>
+        </div>
+        <div class="tools">
+          <div class="chips" id="decades"></div>
+          <button class="chip" id="hitsOnly" aria-pressed="false" data-i="hitsOnly">Bara topp 10</button>
+        </div>
+        <div class="count" id="count-songs"></div>
+        <ul class="list" id="songlist"></ul>
+        <div class="pager"><button id="more-songs" hidden data-i="more">Visa fler</button></div>
+      </div>
+      <aside class="sheet" id="songsheet" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <!-- PEOPLE -->
+  <section class="view" id="view-personer" hidden>
+    <div class="split">
+      <div class="panel">
+        <div class="tools">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="q-people" type="search" placeholder="Sök person…" aria-label="Sök personer" data-ip="qPeople" autocomplete="off">
+          </div>
+          <select id="role-people" aria-label="Roll">
+            <option value="0" data-i="roleAll">Alla roller</option>
+            <option value="1" data-i="roleW">Låtskrivare</option>
+            <option value="2" data-i="roleP">Producenter</option>
+            <option value="4" data-i="roleA">Artister</option>
+          </select>
+        </div>
+        <div class="count" id="count-people"></div>
+        <ul class="list" id="peoplelist"></ul>
+      </div>
+      <aside class="sheet" id="personsheet" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <!-- NETWORK -->
+  <section class="view" id="view-natverk" hidden>
+    <p class="hint" data-i="hint">Dra för att flytta, scrolla eller nyp för att zooma. Klicka på en prick för att se dess kopplingar.</p>
+    <div class="gtools">
+      <div class="chips" role="group" aria-label="Nätverkstyp">
+        <button class="chip" id="mode-art" aria-pressed="true" data-i="modeArt">Svenskar och artister</button>
+        <button class="chip" id="mode-sw" aria-pressed="false" data-i="modeSw">Svenskar som jobbat ihop</button>
+      </div>
+      <label for="gsize"><span data-i="gsize">Antal svenskar</span> <input type="range" id="gsize" min="10" max="120" value="40"> <span id="gsizev">40</span></label>
+      <div class="search" style="flex:0 1 220px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q-graph" type="search" placeholder="Hitta i nätverket…" aria-label="Hitta i nätverket" data-ip="qGraph" list="graphnames" autocomplete="off">
+        <datalist id="graphnames"></datalist>
+      </div>
+    </div>
+    <div class="graphbox">
+      <div class="stage" id="stage">
+        <svg id="graph" role="img" aria-label="Nätverk av svenska upphovspersoner och artister"></svg>
+        <div class="legend"><span><i style="background:var(--gold)"></i><span data-i="lgSwede">Svensk</span></span><span id="lg-art"><i style="background:var(--node-artist)"></i>Artist</span><span data-i="lgSize">Storlek = antal låtar</span></div>
+      </div>
+      <aside class="sheet" id="graphsheet" aria-live="polite"></aside>
+    </div>
+  </section>
+</main>
+<footer class="wrap foot" id="foot"></footer>
+
+<script>
+const DATA = /*DATA*/null;
+</script>
+<script>
+(function(){
+const TX={
+ sv:{brandsub:"krediter från Wikipedia",viewLabel:"Vy",tabSongs:"Låtar",tabPeople:"Personer",tabNet:"Nätverk",
+  heroH:"Svenska namn bakom <em>världens hits</em>",
+  heroP:"Bläddra bland låtarna och se vilka svenskar som skrev, producerade eller framförde dem. Klicka på en person för att se allt den varit med om, eller surfa runt i nätverket.",
+  qSongs:"Sök låt, artist eller svensk…",sortHit:"Störst hits först",sortNew:"Nyast först",sortOld:"Äldst först",sortTitle:"Titel A–Ö",sortSwedes:"Flest svenskar",
+  hitsOnly:"Bara topp 10",more:"Visa fler",qPeople:"Sök person…",roleAll:"Alla roller",roleW:"Låtskrivare",roleP:"Producenter",roleA:"Artister",
+  hint:"Dra för att flytta, scrolla eller nyp för att zooma. Klicka på en prick för att se dess kopplingar.",
+  modeArt:"Svenskar och artister",modeSw:"Svenskar som jobbat ihop",gsize:"Antal svenskar",qGraph:"Hitta i nätverket…",lgSwede:"Svensk",lgSize:"Storlek = antal låtar",
+  r1:"Låtskrivare",r2:"Producent",r4:"Artist",
+  stSongs:"låtar",stSwedes:"svenskar",stArtists:"artister",stUS:"USA-ettor",stUK:"UK-ettor",stYears:"år",
+  foot:(src,d)=>`Källor: ${src}. Insamlat ${d}. Listplaceringar gäller Billboard Hot 100 (US) och UK Singles Chart där de fanns angivna. Vem som räknas som svensk bygger på födelseort, uppväxt eller medborgarskap enligt Wikipedia och andra källor. Sidan är sammanställd automatiskt från offentliga källor och kan innehålla fel. Hittar du något som är fel? <a href="https://github.com/hegunu/swehit/issues">Skicka en rättelse</a>.`,
+  src:"Engelska Wikipedia (produktionsdiskografier, låtlistor, artistdiskografier och låtartiklar)",date:"oktober 2026",
+  top10:"Topp 10",close:"Stäng",allYears:"Alla år",decade:d=>`${String(d).slice(2)}-tal`,nSongs:n=>`${fmt(n)} låtar`,noSongs:"Inga låtar matchar sökningen.",
+  song:"Låt",released:y=>`Utgiven ${y}`,usTop10:"Billboard Hot 100: topp 10",statHint:"Klicka för att visa",onlyUS1:"Bara USA-ettor",onlyUK1:"Bara UK-ettor",otherCharts:x=>`Andra listor: ${x}`,swedesIn:n=>`Svenskar på krediterna (${n})`,inColl:n=>`${n} låtar i samlingen`,
+  otherCr:"Övriga på krediterna",writtenBy:"Text & musik",producedBy:"Produktion",source:"Källa",youtube:"Lyssna på YouTube",moreBy:a=>`Fler låtar med ${a}`,
+  nPeople:n=>`${n} personer`,noPeople:"Ingen person matchar.",nTop10:n=>`${n} topp 10`,nOnes:n=>`${n} listettor`,born:b=>`Född ${b}`,
+  perYear:"Låtar per år",perYearAria:(a,b)=>`Låtar per år ${a}–${b}`,peakYear:n=>`högst ${n} på ett år`,artists:"Artister",oftenWith:"Jobbar ofta med",
+  songs:"Låtar",songsTop:n=>`Låtar (topp ${n})`,showNet:"Visa i nätverket",openProfile:"Öppna personsidan",
+  network:"Nätverket",whoWho:"Vem har jobbat med vem",teams:"Svenska team",
+  artIntro:"Gula prickar är svenskar, grå är artisterna de skrivit eller producerat åt. Ju fler gemensamma låtar, desto tjockare linje.",
+  swIntro:"Här kopplas svenskarna ihop när de står på samma låt. Klungorna visar skolor och team, som Cheiron-gänget och Max Martins Wolf Cousins.",
+  startWith:"Börja med",songsWithSwedes:n=>`${n} låtar med svenskar`,nSwedes:n=>`${n} svenskar`,theSwedes:"Svenskarna",graphAria:"Nätverk av svenska upphovspersoner och artister"},
+ en:{brandsub:"credits from Wikipedia",viewLabel:"View",tabSongs:"Songs",tabPeople:"People",tabNet:"Network",
+  heroH:"The Swedes behind <em>the world's hits</em>",
+  heroP:"Browse the songs and see which Swedes wrote, produced or performed them. Click a person to see everything they have worked on, or explore the network.",
+  qSongs:"Search song, artist or Swede…",sortHit:"Biggest hits first",sortNew:"Newest first",sortOld:"Oldest first",sortTitle:"Title A–Z",sortSwedes:"Most Swedes",
+  hitsOnly:"Top 10 only",more:"Show more",qPeople:"Search people…",roleAll:"All roles",roleW:"Songwriters",roleP:"Producers",roleA:"Artists",
+  hint:"Drag to move, scroll or pinch to zoom. Click a dot to see its connections.",
+  modeArt:"Swedes and artists",modeSw:"Swedes who worked together",gsize:"Number of Swedes",qGraph:"Find in the network…",lgSwede:"Swede",lgSize:"Size = number of songs",
+  r1:"Songwriter",r2:"Producer",r4:"Artist",
+  stSongs:"songs",stSwedes:"Swedes",stArtists:"artists",stUS:"US number ones",stUK:"UK number ones",stYears:"years",
+  foot:(src,d)=>`Sources: ${src}. Collected ${d}. Chart positions refer to the Billboard Hot 100 (US) and UK Singles Chart where listed. Who counts as Swedish is based on birthplace, upbringing or citizenship according to Wikipedia and other sources. This page is compiled automatically from public sources and may contain errors. Spotted a mistake? <a href="https://github.com/hegunu/swehit/issues">Send a correction</a>.`,
+  src:"English Wikipedia (production discographies, song lists, artist discographies and song articles)",date:"October 2026",
+  top10:"Top 10",close:"Close",allYears:"All years",decade:d=>`${String(d).slice(2)}s`,nSongs:n=>`${fmt(n)} songs`,noSongs:"No songs match your search.",
+  song:"Song",released:y=>`Released ${y}`,usTop10:"Billboard Hot 100: top 10",statHint:"Click to show",onlyUS1:"US number ones only",onlyUK1:"UK number ones only",otherCharts:x=>`Other charts: ${x}`,swedesIn:n=>`Swedes in the credits (${n})`,inColl:n=>`${n} songs in the collection`,
+  otherCr:"Other credits",writtenBy:"Written by",producedBy:"Produced by",source:"Source",youtube:"Listen on YouTube",moreBy:a=>`More songs by ${a}`,
+  nPeople:n=>`${n} people`,noPeople:"No one matches.",nTop10:n=>`${n} top 10`,nOnes:n=>`${n} No. 1s`,born:b=>`Born ${b.replace("död","died")}`,
+  perYear:"Songs per year",perYearAria:(a,b)=>`Songs per year ${a}–${b}`,peakYear:n=>`peak ${n} in one year`,artists:"Artists",oftenWith:"Often works with",
+  songs:"Songs",songsTop:n=>`Songs (top ${n})`,showNet:"Show in network",openProfile:"Open profile",
+  network:"The network",whoWho:"Who worked with whom",teams:"Swedish teams",
+  artIntro:"Yellow dots are Swedes, grey dots are the artists they wrote or produced for. The more songs in common, the thicker the line.",
+  swIntro:"Here Swedes are linked when they share credits on the same song. The clusters show schools and teams, like the Cheiron crew and Max Martin's Wolf Cousins.",
+  startWith:"Start with",songsWithSwedes:n=>`${n} songs with Swedes`,nSwedes:n=>`${n} Swedes`,theSwedes:"The Swedes",graphAria:"Network of Swedish songwriters, producers and artists"}
+};
+let lang="sv";
+try{const l=localStorage.getItem("shm-lang"); if(l==="en"||l==="sv") lang=l;}catch(e){}
+const t=(k,...a)=>{const v=TX[lang][k]; return typeof v==="function"?v(...a):v;};
+const fmt=n=>Number(n).toLocaleString(lang==="sv"?"sv-SE":"en-US");
+const songs = DATA.songs, people = DATA.people;
+const P = new Map(people.map(p=>[p.id,p]));
+const S = new Map(songs.map(s=>[s.id,s]));
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const initials = n=>{const w=n.replace(/[()".]/g,"").split(/\s+/).filter(Boolean);return ((w[0]||"")[0]+((w.length>1?w[w.length-1]:w[0]||"")[1===w.length?1:0]||"")).toUpperCase();};
+const roleText = m=>[1,2,4].filter(b=>m&b).map(b=>t("r"+b)).join(" · ");
+const mainArtist = a=>a.split(/\s+(?:feat\.|featuring|ft\.|with|&|and|x|×|,)\s+/i)[0].trim();
+const bio = p=> lang==="en" ? (p.be||p.b) : p.b;
+const fullName = p=> p.full && lang==="en" ? p.full.replace(" och "," and ") : p.full;
+
+songs.forEach(s=>{
+  s.oxm={}; (s.ox||"").split(/;\s*/).forEach(x=>{const m=/^(\w+)\s+(\d+)$/.exec(x.trim()); if(m) s.oxm[m[1]]=+m[2];});
+  s.best=Math.min(s.us??999,s.uk??999,s.t10?10:999,...Object.entries(s.oxm).filter(([k])=>k!=="SWE").map(e=>e[1]));
+  s.oneAt=s.us===1?"US":s.uk===1?"UK":(Object.entries(s.oxm).find(([k,v])=>v===1&&k!=="SWE")||[])[0];
+  s._q=norm([s.t,s.a,s.cr.map(c=>P.get(c[0]).n).join(" "),s.ow,s.op].join(" "));
+});
+people.forEach(p=>{p.songs=[];p.mask=0;});
+songs.forEach(s=>s.cr.forEach(([pid,m])=>{const p=P.get(pid);p.songs.push(s);p.mask|=m;}));
+people.forEach(p=>{
+  p.songs.sort((a,b)=>(a.best-b.best)||(b.y-a.y));
+  p.hits=p.songs.filter(s=>s.best<=10).length;
+  p.ones=p.songs.filter(s=>s.us===1||s.uk===1).length;
+  p._q=norm(p.n+" "+(p.al||[]).join(" "));
+});
+const active = people.filter(p=>p.songs.length).sort((a,b)=>b.songs.length-a.songs.length);
+const artists=new Set(songs.map(s=>mainArtist(s.a)));
+const usOnes=songs.filter(s=>s.us===1).length, ukOnes=songs.filter(s=>s.uk===1).length;
+const yrs=songs.map(s=>s.y).filter(Boolean);
+
+function renderStatic(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i]").forEach(el=>el.textContent=t(el.dataset.i));
+  document.querySelectorAll("[data-ih]").forEach(el=>el.innerHTML=t(el.dataset.ih));
+  document.querySelectorAll("[data-ip]").forEach(el=>{el.placeholder=t(el.dataset.ip);el.setAttribute("aria-label",t(el.dataset.ip).replace("…",""));});
+  document.querySelectorAll("[data-ia]").forEach(el=>el.setAttribute("aria-label",t(el.dataset.ia)));
+  $("#graph").setAttribute("aria-label",t("graphAria"));
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  $("#stats").innerHTML=[
+    [fmt(songs.length),t("stSongs"),"all"],[active.length,t("stSwedes"),"people"],[fmt(artists.size),t("stArtists"),null],
+    [usOnes,t("stUS"),"us1"],[ukOnes,t("stUK"),"uk1"],[Math.min(...yrs)+"–"+Math.max(...yrs),t("stYears"),null]
+  ].map(([b,s,k])=>k?`<button class="stat clickable" data-stat="${k}" aria-pressed="${k===oneFilter}" title="${esc(t("statHint"))}"><b>${b}</b><span>${s}</span></button>`:`<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
+  $("#foot").innerHTML=t("foot",t("src"),t("date"));
+  renderDecades();
+}
+
+const ini = p=>`<span class="ini" title="${esc(p.n)}">${esc(initials(p.n))}</span>`;
+const hitBadge = s=> s.best===1?`<span class="badge">#1 ${s.oneAt}</span>` : s.best<=10?`<span class="badge">${t("top10")}</span>`:"";
+const isMobile=()=>matchMedia("(max-width: 900px)").matches;
+function openSheet(el){ if(isMobile()) el.classList.add("open"); }
+document.addEventListener("click",e=>{ if(e.target.closest(".close")) e.target.closest(".sheet").classList.remove("open"); });
+const closeBtn=()=>`<button class="close">${t("close")}</button>`;
+
+/* ---------- SONGS ---------- */
+let oneFilter=null;
+function setOne(k){
+  oneFilter=k; songLimit=80;
+  if(k){ $("#sort-songs").value="old"; curSong=null; }
+  document.querySelectorAll("[data-stat]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.stat===oneFilter));
+  renderSongs();
+}
+$("#stats").addEventListener("click",e=>{
+  const b=e.target.closest("[data-stat]"); if(!b) return;
+  const k=b.dataset.stat;
+  if(k==="people"){ go("personer"); return; }
+  go("latar");
+  if(k==="all"){ decade=null; hitsOnly=false; $("#hitsOnly").setAttribute("aria-pressed",false); $("#q-songs").value=""; renderDecades(); setOne(null); }
+  else setOne(oneFilter===k?null:k);
+  window.scrollTo({top:$("#view-latar").getBoundingClientRect().top+scrollY-$(".mast").offsetHeight-8,behavior:"smooth"});
+});
+let decade=null, hitsOnly=false, songLimit=80, curSong=null;
+const decs=[...new Set(yrs.map(y=>Math.floor(y/10)*10))].sort();
+function renderDecades(){
+  $("#decades").innerHTML=[`<button class="chip" aria-pressed="${decade==null}" data-d="">${t("allYears")}</button>`,...decs.map(d=>`<button class="chip" aria-pressed="${decade===d}" data-d="${d}">${t("decade",d)}</button>`)].join("");
+}
+$("#decades").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;decade=b.dataset.d?+b.dataset.d:null;renderDecades();songLimit=80;renderSongs();});
+$("#hitsOnly").onclick=e=>{hitsOnly=!hitsOnly;e.currentTarget.setAttribute("aria-pressed",hitsOnly);songLimit=80;renderSongs();};
+$("#q-songs").addEventListener("input",()=>{songLimit=80;renderSongs();});
+$("#sort-songs").onchange=()=>renderSongs();
+$("#more-songs").onclick=()=>{songLimit+=120;renderSongs();};
+function filteredSongs(){
+  const q=norm($("#q-songs").value).trim().split(/\s+/).filter(Boolean);
+  let r=songs.filter(s=>(!decade||(s.y>=decade&&s.y<decade+10))&&(!hitsOnly||s.best<=10)&&(!oneFilter||(oneFilter==="us1"?s.us===1:s.uk===1))&&q.every(w=>s._q.includes(w)));
+  const k=$("#sort-songs").value, loc=lang;
+  const cmp={hit:(a,b)=>(a.best-b.best)||(b.cr.length-a.cr.length)||(b.y-a.y),new:(a,b)=>b.y-a.y||a.t.localeCompare(b.t,loc),old:(a,b)=>a.y-b.y||a.t.localeCompare(b.t,loc),title:(a,b)=>a.t.localeCompare(b.t,loc),swedes:(a,b)=>b.cr.length-a.cr.length||a.best-b.best}[k];
+  return r.sort(cmp);
+}
+function renderSongs(){
+  const r=filteredSongs();
+  $("#count-songs").innerHTML=esc(t("nSongs",r.length))+(oneFilter?` · <button class="fchip" id="clear-one">${esc(t(oneFilter==="us1"?"onlyUS1":"onlyUK1"))} ✕</button>`:"");
+  const co=$("#clear-one"); if(co) co.onclick=()=>setOne(null);
+  $("#songlist").innerHTML=r.slice(0,songLimit).map(s=>{
+    const ps=s.cr.map(c=>P.get(c[0]));
+    return `<li><button class="row" data-s="${s.id}" aria-current="${s.id===curSong}"><span class="yr">${s.y||"–"}</span><span style="min-width:0"><div class="tt">${esc(s.t)}${hitBadge(s)}</div><div class="ar">${esc(s.a)}</div></span><span class="dots">${ps.slice(0,3).map(ini).join("")}${ps.length>3?`<span class="more">+${ps.length-3}</span>`:""}</span></button></li>`;
+  }).join("") || `<li class="empty">${t("noSongs")}</li>`;
+  $("#more-songs").hidden=r.length<=songLimit;
+  if(curSong==null && r.length && !isMobile()) showSong(r[0].id,false);
+}
+$("#songlist").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(b)showSong(+b.dataset.s,true);});
+function showSong(id,open){
+  curSong=id; const s=S.get(id);
+  document.querySelectorAll("#songlist .row").forEach(r=>r.setAttribute("aria-current",+r.dataset.s===id));
+  const facts=[s.y&&t("released",s.y), s.us&&`Billboard Hot 100: #${s.us}`, s.t10&&t("usTop10"), s.uk&&`UK Singles: #${s.uk}`, s.ox&&t("otherCharts",s.ox)].filter(Boolean);
+  const main=mainArtist(s.a);
+  $("#songsheet").innerHTML=`${closeBtn()}
+  <div class="eyebrow">${t("song")}</div><h2>${esc(s.t)}</h2>
+  <div class="by">${esc(s.a)}</div>
+  <div class="facts">${facts.map(f=>`<span>${esc(f)}</span>`).join("")}</div>
+  <div class="sec"><h3>${t("swedesIn",s.cr.length)}</h3><div class="credits">
+  ${s.cr.map(([pid,m])=>{const p=P.get(pid);return `<button class="credit" data-p="${pid}">${ini(p)}<span style="min-width:0"><b>${esc(p.n)}</b><small>${t("inColl",p.songs.length)}</small></span><span class="role">${roleText(m)}</span></button>`}).join("")}
+  </div></div>
+  ${(s.ow||s.op)?`<div class="sec"><h3>${t("otherCr")}</h3><div class="others">${s.ow?`<div><b>${t("writtenBy")}</b>${esc(s.ow)}</div>`:""}${s.op?`<div><b>${t("producedBy")}</b>${esc(s.op)}</div>`:""}</div></div>`:""}
+  <div class="actions">${s.src?`<a class="btn ghost" href="${esc(s.src)}" target="_blank" rel="noopener">${t("source")}</a>`:""}<a class="btn ghost" href="https://www.youtube.com/results?search_query=${encodeURIComponent(main+" "+s.t)}" target="_blank" rel="noopener">${t("youtube")}</a><button class="btn" data-artist="${esc(main)}">${esc(t("moreBy",main))}</button></div>`;
+  if(open) openSheet($("#songsheet"));
+}
+$("#songsheet").addEventListener("click",e=>{
+  const c=e.target.closest("[data-p]"); if(c){go("personer");showPerson(+c.dataset.p,true);return;}
+  const a=e.target.closest("[data-artist]"); if(a){$("#q-songs").value=a.dataset.artist;songLimit=80;$("#songsheet").classList.remove("open");renderSongs();window.scrollTo({top:$("#view-latar").offsetTop-80,behavior:"smooth"});}
+});
+
+/* ---------- PEOPLE ---------- */
+let curPerson=null;
+$("#q-people").addEventListener("input",renderPeople);
+$("#role-people").onchange=renderPeople;
+function renderPeople(){
+  const q=norm($("#q-people").value).trim(), rm=+$("#role-people").value;
+  const r=active.filter(p=>(!q||p._q.includes(q))&&(!rm||(p.mask&rm)));
+  const max=active[0]?.songs.length||1;
+  $("#count-people").textContent=t("nPeople",r.length);
+  $("#peoplelist").innerHTML=r.map(p=>`<li><button class="prow" data-p="${p.id}" aria-current="${p.id===curPerson}">${ini(p)}<span style="min-width:0"><div class="tt">${esc(p.n)}</div><div class="ar">${esc(roleText(p.mask))}</div><span class="bar" style="width:${Math.max(3,Math.sqrt(p.songs.length/max)*100)}%"></span></span><span class="num">${p.songs.length}<br><span style="color:var(--hit)">${p.hits?t("nTop10",p.hits):""}</span></span></button></li>`).join("")||`<li class="empty">${t("noPeople")}</li>`;
+  if(curPerson==null && r.length && !isMobile()) showPerson(r[0].id,false);
+}
+$("#peoplelist").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(b)showPerson(+b.dataset.p,true);});
+function collaborators(p){
+  const m=new Map();
+  p.songs.forEach(s=>s.cr.forEach(([q])=>{if(q!==p.id)m.set(q,(m.get(q)||0)+1);}));
+  return [...m].sort((a,b)=>b[1]-a[1]);
+}
+function artistsOf(p){
+  const m=new Map(); p.songs.forEach(s=>{const a=mainArtist(s.a);m.set(a,(m.get(a)||0)+1);});
+  return [...m].sort((a,b)=>b[1]-a[1]);
+}
+function spark(p){
+  const ys=p.songs.map(s=>s.y).filter(Boolean); if(!ys.length) return "";
+  const lo=Math.min(...ys), hi=Math.max(...ys), n=hi-lo+1, c=new Array(n).fill(0), h=new Array(n).fill(0);
+  p.songs.forEach(s=>{if(s.y){c[s.y-lo]++; if(s.best<=10)h[s.y-lo]++;}});
+  const mx=Math.max(...c), W=320, H=70, bw=W/n;
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t("perYearAria",lo,hi))}">
+  ${c.map((v,i)=>`<rect x="${i*bw+.5}" y="${(H-14)-(v/mx)*(H-18)}" width="${Math.max(1,bw-1)}" height="${(v/mx)*(H-18)}" fill="var(--gold)" opacity=".55"><title>${lo+i}: ${t("nSongs",v)}</title></rect><rect x="${i*bw+.5}" y="${(H-14)-(h[i]/mx)*(H-18)}" width="${Math.max(1,bw-1)}" height="${(h[i]/mx)*(H-18)}" fill="var(--hit)"/>`).join("")}
+  <line x1="0" x2="${W}" y1="${H-14}" y2="${H-14}" stroke="var(--rule)"/>
+  <text x="0" y="${H-2}">${lo}</text><text x="${W}" y="${H-2}" text-anchor="end">${hi}</text><text x="${W/2}" y="${H-2}" text-anchor="middle">${t("peakYear",mx)}</text></svg>`;
+}
+function personHTML(p, compact){
+  const col=collaborators(p).slice(0,14), arts=artistsOf(p).slice(0,18);
+  const lim=compact?12:400, fn=fullName(p), b=bio(p);
+  return `${closeBtn()}
+  <div class="eyebrow">${esc(roleText(p.mask))}</div><h2>${esc(p.n)}</h2>
+  ${fn&&fn!==p.n?`<div class="by">${esc(fn)}</div>`:""}
+  <div class="facts"><span>${t("nSongs",p.songs.length)}</span>${p.hits?`<span>${t("nTop10",p.hits)}</span>`:""}${p.ones?`<span>${t("nOnes",p.ones)}</span>`:""}${p.born?`<span>${esc(t("born",p.born))}</span>`:""}</div>
+  ${b?`<p class="bio">${esc(b)}</p>`:""}
+  <div class="sec"><h3>${t("perYear")} <span style="color:var(--hit)">■</span> ${t("top10").toLowerCase()}</h3>${spark(p)}</div>
+  ${arts.length?`<div class="sec"><h3>${t("artists")}</h3><div class="pills">${arts.map(([a,n])=>`<button class="pill" data-artist="${esc(a)}">${esc(a)}<i>${n}</i></button>`).join("")}</div></div>`:""}
+  ${col.length?`<div class="sec"><h3>${t("oftenWith")}</h3><div class="pills">${col.map(([q,n])=>`<button class="pill" data-p="${q}">${esc(P.get(q).n)}<i>${n}</i></button>`).join("")}</div></div>`:""}
+  <div class="sec"><h3>${p.songs.length>lim?t("songsTop",lim):t("songs")}</h3><ul class="mini">${p.songs.slice(0,lim).map(s=>{const m=s.cr.find(c=>c[0]===p.id)[1];return `<li><button data-s="${s.id}"><span class="yr">${s.y||""}</span><span style="min-width:0"><div class="tt">${esc(s.t)}${hitBadge(s)}</div><div class="ar">${esc(s.a)}</div></span><span class="role">${roleText(m)}</span></button></li>`}).join("")}</ul></div>
+  <div class="actions">${p.w?`<a class="btn ghost" href="${esc(p.w)}" target="_blank" rel="noopener">Wikipedia</a>`:""}<button class="btn" data-graph="${p.id}">${t("showNet")}</button>${compact?`<button class="btn ghost" data-open="${p.id}">${t("openProfile")}</button>`:""}</div>`;
+}
+function showPerson(id,open){
+  curPerson=id;
+  document.querySelectorAll("#peoplelist .prow").forEach(r=>r.setAttribute("aria-current",+r.dataset.p===id));
+  $("#personsheet").innerHTML=personHTML(P.get(id),false); $("#personsheet").scrollTop=0;
+  if(open) openSheet($("#personsheet"));
+}
+function sheetNav(e){
+  const s=e.target.closest("[data-s]"); if(s){go("latar");showSong(+s.dataset.s,true);return;}
+  const g=e.target.closest("[data-graph]"); if(g){go("natverk");focusGraph("p"+g.dataset.graph);return;}
+  const o=e.target.closest("[data-open]"); if(o){go("personer");showPerson(+o.dataset.open,true);return;}
+  const p=e.target.closest("[data-p]"); if(p){ if(e.currentTarget.id==="graphsheet"){focusGraph("p"+p.dataset.p);} else showPerson(+p.dataset.p,true); return;}
+  const a=e.target.closest("[data-artist]"); if(a){ if(e.currentTarget.id==="graphsheet" && graphMode==="art"){focusGraph("a"+a.dataset.artist);return;} go("latar");$("#q-songs").value=a.dataset.artist;songLimit=80;renderSongs();}
+}
+$("#personsheet").addEventListener("click",sheetNav);
+
+/* ---------- GRAPH ---------- */
+let graphMode="art", sim=null, gsel=null, gNodes=[], zoomer=null, gRoot=null;
+const svg=d3.select("#graph");
+$("#gsize").oninput=e=>{$("#gsizev").textContent=e.target.value;buildGraph();};
+$("#mode-art").onclick=()=>{graphMode="art";$("#mode-art").setAttribute("aria-pressed",true);$("#mode-sw").setAttribute("aria-pressed",false);$("#lg-art").hidden=false;buildGraph();};
+$("#mode-sw").onclick=()=>{graphMode="sw";$("#mode-sw").setAttribute("aria-pressed",true);$("#mode-art").setAttribute("aria-pressed",false);$("#lg-art").hidden=true;buildGraph();};
+$("#q-graph").addEventListener("change",e=>{const v=e.target.value.trim();const n=gNodes.find(n=>n.label===v)||gNodes.find(n=>norm(n.label).includes(norm(v)));if(n)focusGraph(n.id);else{const p=active.find(p=>p._q.includes(norm(v)));if(p)focusGraph("p"+p.id);}});
+const swedeNames=new Set(people.flatMap(p=>[p.n,...(p.al||[])].map(norm)));
+let labelSet=new Set();
+function graphData(){
+  const N=+$("#gsize").value, top=active.slice(0,N), set=new Set(top.map(p=>p.id));
+  const nodes=[], links=[];
+  top.forEach(p=>nodes.push({id:"p"+p.id,label:p.n,kind:"p",pid:p.id,w:p.songs.length}));
+  if(graphMode==="art"){
+    const am=new Map();
+    top.forEach(p=>artistsOf(p).forEach(([a,n])=>{if(swedeNames.has(norm(a)))return;const k="a"+a;if(!am.has(k))am.set(k,{id:k,label:a,kind:"a",w:0,deg:0});am.get(k).w+=n;am.get(k).deg++;links.push({source:"p"+p.id,target:k,w:n});}));
+    let arts=[...am.values()].filter(a=>a.deg>=2||a.w>=3).sort((a,b)=>b.w-a.w).slice(0,Math.round(N*2.2));
+    const keep=new Set(arts.map(a=>a.id));
+    top.forEach(p=>{const best=artistsOf(p).filter(([a])=>!swedeNames.has(norm(a))).slice(0,2);best.forEach(([a])=>{const k="a"+a;if(!keep.has(k)){keep.add(k);arts.push(am.get(k));}});});
+    nodes.push(...arts);
+    const ls=links.filter(l=>keep.has(l.target)), linked=new Set(ls.map(l=>l.source));
+    return {nodes:nodes.filter(n=>n.kind==="a"||linked.has(n.id)),links:ls};
+  } else {
+    const lm=new Map();
+    songs.forEach(s=>{const ids=s.cr.map(c=>c[0]).filter(i=>set.has(i));for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){const a=Math.min(ids[i],ids[j]),b=Math.max(ids[i],ids[j]),k=a+"-"+b;lm.set(k,(lm.get(k)||0)+1);}});
+    lm.forEach((w,k)=>{const [a,b]=k.split("-");links.push({source:"p"+a,target:"p"+b,w});});
+    const linked=new Set(links.flatMap(l=>[l.source,l.target]));
+    return {nodes:nodes.filter(n=>linked.has(n.id)),links};
+  }
+}
+function buildGraph(){
+  const el=$("#stage"), W=el.clientWidth||800, H=el.clientHeight||600;
+  const {nodes,links}=graphData(); gNodes=nodes;
+  $("#graphnames").innerHTML=nodes.map(n=>`<option value="${esc(n.label)}">`).join("");
+  svg.selectAll("*").remove(); svg.attr("viewBox",[-W/2,-H/2,W,H]);
+  gRoot=svg.append("g");
+  zoomer=d3.zoom().scaleExtent([.2,6]).on("zoom",e=>gRoot.attr("transform",e.transform));
+  svg.call(zoomer).on("dblclick.zoom",null);
+  labelSet=new Set([...nodes.filter(n=>n.kind==="p").sort((a,b)=>b.w-a.w).slice(0,14),...nodes.filter(n=>n.kind==="a").sort((a,b)=>b.w-a.w).slice(0,10)].map(n=>n.id));
+  const r=d3.scaleSqrt().domain([1,d3.max(nodes,n=>n.w)||1]).range([4,30]);
+  const lw=d3.scaleSqrt().domain([1,d3.max(links,l=>l.w)||1]).range([.6,5]);
+  const link=gRoot.append("g").selectAll("line").data(links).join("line").attr("class","link").attr("stroke-width",d=>lw(d.w));
+  const node=gRoot.append("g").selectAll("g").data(nodes).join("g").attr("class","node").style("cursor","pointer");
+  node.append("circle").attr("r",d=>r(d.w)).attr("fill",d=>d.kind==="p"?"var(--gold)":"var(--node-artist)").attr("stroke","var(--sheet)").attr("stroke-width",1.5);
+  node.append("text").text(d=>d.label).attr("dy",d=>r(d.w)+12).attr("text-anchor","middle").attr("display",d=>labelSet.has(d.id)?null:"none").attr("font-weight",d=>d.kind==="p"?600:400);
+  node.append("title").text(d=>`${d.label} · ${t("nSongs",d.w)}`);
+  node.on("click",(e,d)=>{e.stopPropagation();focusGraph(d.id,false);})
+      .on("mouseenter",function(){d3.select(this).select("text").attr("display",null);})
+      .on("mouseleave",function(e,d){if(gsel!==d.id&&!(gsel&&isNb(d.id)))d3.select(this).select("text").attr("display",labelSet.has(d.id)?null:"none");});
+  node.call(d3.drag().on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.2).restart();d.fx=d.x;d.fy=d.y;}).on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;}).on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+  svg.on("click",()=>{gsel=null;applyFocus();graphIntro();});
+  if(sim) sim.stop();
+  sim=d3.forceSimulation(nodes)
+    .force("link",d3.forceLink(links).id(d=>d.id).distance(l=>graphMode==="art"?70+90/Math.sqrt(l.w):90).strength(l=>Math.min(1,.15+l.w/20)))
+    .force("charge",d3.forceManyBody().strength(d=>-70-r(d.w)*14))
+    .force("collide",d3.forceCollide(d=>r(d.w)+(labelSet.has(d.id)?14:4)))
+    .force("x",d3.forceX().strength(.07)).force("y",d3.forceY().strength(.09))
+    .on("tick",()=>{link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);node.attr("transform",d=>`translate(${d.x},${d.y})`);});
+  sim.stop(); for(let i=0;i<260;i++) sim.tick(); sim.on("tick")(); fitGraph(0);
+  if(!matchMedia("(prefers-reduced-motion: reduce)").matches) sim.alpha(.04).restart();
+  buildGraph.link=link; buildGraph.node=node; buildGraph.links=links;
+  if(gsel&&!nodes.find(n=>n.id===gsel)) gsel=null;
+  applyFocus(); if(!gsel) graphIntro();
+}
+function fitGraph(dur=700){
+  const el=$("#stage"),W=el.clientWidth,H=el.clientHeight; if(!gNodes.length||!W) return;
+  const xs=gNodes.map(n=>n.x),ys=gNodes.map(n=>n.y),x0=Math.min(...xs)-40,x1=Math.max(...xs)+40,y0=Math.min(...ys)-30,y1=Math.max(...ys)+30;
+  const k=Math.min(2,.95*Math.min(W/(x1-x0),H/(y1-y0)));
+  (dur?svg.transition().duration(dur):svg).call(zoomer.transform,d3.zoomIdentity.scale(k).translate(-(x0+x1)/2,-(y0+y1)/2));
+}
+let nbSet=new Set();
+function isNb(id){return nbSet.has(id);}
+function applyFocus(){
+  const {link,node,links}=buildGraph; if(!node) return;
+  nbSet=new Set(); if(gsel){nbSet.add(gsel);links.forEach(l=>{if(l.source.id===gsel)nbSet.add(l.target.id);if(l.target.id===gsel)nbSet.add(l.source.id);});}
+  node.classed("dim",d=>gsel&&!nbSet.has(d.id));
+  node.select("text").attr("display",d=>(gsel&&nbSet.has(d.id))||(!gsel&&labelSet.has(d.id))?null:"none");
+  node.select("circle").attr("stroke",d=>d.id===gsel?"var(--blue)":"var(--sheet)").attr("stroke-width",d=>d.id===gsel?3:1.5);
+  link.classed("dim",l=>gsel&&l.source.id!==gsel&&l.target.id!==gsel).attr("stroke",l=>gsel&&(l.source.id===gsel||l.target.id===gsel)?"var(--blue)":null).attr("stroke-opacity",l=>gsel&&(l.source.id===gsel||l.target.id===gsel)?.6:null);
+}
+function graphIntro(){
+  const top=active.slice(0,5);
+  $("#graphsheet").innerHTML=`${closeBtn()}<div class="eyebrow">${t("network")}</div><h2>${graphMode==="art"?t("whoWho"):t("teams")}</h2>
+  <p class="bio">${graphMode==="art"?t("artIntro"):t("swIntro")}</p>
+  <div class="sec"><h3>${t("startWith")}</h3><div class="pills">${top.map(p=>`<button class="pill" data-p="${p.id}">${esc(p.n)}<i>${p.songs.length}</i></button>`).join("")}</div></div>`;
+}
+function graphSheet(n){
+  if(n.kind==="p"){ $("#graphsheet").innerHTML=personHTML(P.get(n.pid),true); return; }
+  const name=n.label, list=songs.filter(s=>mainArtist(s.a)===name).sort((a,b)=>a.best-b.best||b.y-a.y);
+  const sw=new Map(); list.forEach(s=>s.cr.forEach(([q])=>sw.set(q,(sw.get(q)||0)+1)));
+  $("#graphsheet").innerHTML=`${closeBtn()}<div class="eyebrow">${t("r4")}</div><h2>${esc(name)}</h2>
+  <div class="facts"><span>${t("songsWithSwedes",list.length)}</span><span>${t("nSwedes",sw.size)}</span></div>
+  <div class="sec"><h3>${t("theSwedes")}</h3><div class="pills">${[...sw].sort((a,b)=>b[1]-a[1]).map(([q,c])=>`<button class="pill" data-p="${q}">${esc(P.get(q).n)}<i>${c}</i></button>`).join("")}</div></div>
+  <div class="sec"><h3>${t("songs")}</h3><ul class="mini">${list.slice(0,60).map(s=>`<li><button data-s="${s.id}"><span class="yr">${s.y||""}</span><span style="min-width:0"><div class="tt">${esc(s.t)}${hitBadge(s)}</div><div class="ar">${esc(s.cr.map(c=>P.get(c[0]).n).join(", "))}</div></span><span></span></button></li>`).join("")}</ul></div>`;
+}
+function focusGraph(id,zoom=true){
+  if(!buildGraph.node) buildGraph();
+  let n=gNodes.find(n=>n.id===id);
+  if(!n && id[0]==="p"){
+    const idx=active.findIndex(p=>"p"+p.id===id); if(idx>=0){const v=Math.min(120,Math.max(idx+1,+$("#gsize").value));$("#gsize").value=v;$("#gsizev").textContent=v;buildGraph();n=gNodes.find(n=>n.id===id);}
+  }
+  if(!n) return;
+  gsel=id; applyFocus(); graphSheet(n);
+  $("#graphsheet").scrollTop=0; openSheet($("#graphsheet"));
+  if(zoom && n.x!=null){ svg.transition().duration(600).call(zoomer.transform,d3.zoomIdentity.scale(1.6).translate(-n.x,-n.y)); }
+}
+$("#graphsheet").addEventListener("click",sheetNav);
+
+/* ---------- language ---------- */
+function setLang(l){
+  lang=l; try{localStorage.setItem("shm-lang",l);}catch(e){}
+  renderStatic(); renderSongs(); renderPeople();
+  if(curSong!=null) showSong(curSong,false);
+  if(curPerson!=null) showPerson(curPerson,false);
+  if(buildGraph.node){
+    buildGraph.node.select("title").text(d=>`${d.label} · ${t("nSongs",d.w)}`);
+    const n=gsel&&gNodes.find(n=>n.id===gsel); if(n) graphSheet(n); else graphIntro();
+  }
+}
+document.querySelectorAll(".lang button").forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+
+/* ---------- routing ---------- */
+function go(v){
+  $(".hero").hidden=v==="natverk";
+  ["latar","personer","natverk"].forEach(k=>{$("#view-"+k).hidden=k!==v;$("#tab-"+k).setAttribute("aria-selected",k===v);});
+  document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"));
+  if(v==="natverk" && !buildGraph.node) buildGraph();
+  try{history.replaceState(null,"","#"+v);}catch(e){}
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>go(b.dataset.view));
+renderStatic(); renderSongs(); renderPeople();
+let start=(location.hash||"").slice(1);
+if(!["latar","personer","natverk"].includes(start)){start="latar";}
+go(start);
+})();
+</script>
