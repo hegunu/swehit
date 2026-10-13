@@ -95,6 +95,12 @@ def P(name):
         people.append(dict(id=pid[name],n=name,be=BEN.get(name) or v.get('be'),al=v.get('al',[]),full=v.get('full'),born=(re.match(r'\d{4}',v.get('born') or '') or [None])[0],b=v.get('b'),w=v.get('w'),act=v.get('act',0)))
     return pid[name]
 out=[];unknown=collections.Counter()
+DATES={}
+DF=os.path.join(os.path.dirname(__file__),'..','raw','dates.tsv')
+if os.path.exists(DF):
+    for line in open(DF,encoding='utf-8'):
+        f=line.rstrip('\n').split('\t')
+        if len(f)>=3 and re.match(r'\d{4}-\d{2}-\d{2}$',f[2].strip()): DATES[(ntitle(f[0]),akey(f[1]))]=f[2].strip()
 for s in sorted(songs.values(),key=lambda s:(s['y'] or 0,s['t'])):
     cr=collections.OrderedDict(); ow=[]; op=[]
     for n in s['w']:
@@ -110,7 +116,9 @@ for s in sorted(songs.values(),key=lambda s:(s['y'] or 0,s['t'])):
         if k: cr[k]=cr.get(k,0)|4
     if not cr: continue
     us,uk=s['us'],s['uk']
-    out.append(dict(id=len(out),t=s['t'],a=s['a'],y=s['y'],us=us,uk=uk,t10=1 if (s['t10'] and not us) else 0,
+    dt=DATES.get((ntitle(s['t']),akey(s['a'])))
+    if dt and s['y'] and int(dt[:4])!=s['y']: dt=None
+    out.append(dict(id=len(out),t=s['t'],a=s['a'],y=s['y'],d=dt,us=us,uk=uk,t10=1 if (s['t10'] and not us) else 0,
         cr=[[P(k),m] for k,m in cr.items()],ow=', '.join(ow),op=', '.join(op),ox='; '.join(f'{k} {v}' for k,v in sorted(s['ox'].items(),key=lambda x:x[1])[:5]),src=(s['src'] or [''])[0]))
 json.dump(dict(songs=out,people=people,meta=dict(sources='Engelska Wikipedia (produktionsdiskografier, låtlistor, artistdiskografier och låtartiklar)',date='oktober 2026')),
           open(sys.argv[1],'w'),ensure_ascii=False,separators=(',',':'))

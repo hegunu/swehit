@@ -17,6 +17,7 @@ python3 -I build/webpage.py page.html selfhost index.html
 ```
 
 Nya låtar läggs till som rader i `raw/*.tsv` (år, titel, artist, låtskrivare, producenter, placering, källa). Svenska personer matchas mot listan i `build/swedes.py`, `build/extra_swedes.json` och `raw/*.acts.txt`.
+Utgivningsdatum (för sortering inom samma år) ligger i `raw/dates.tsv` (titel, artist, YYYY-MM-DD).
 
 Data: `data/latar.csv`, `data/personer.csv`.
 
