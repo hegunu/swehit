@@ -92,7 +92,7 @@ pid={};people=[]
 def P(name):
     if name not in pid:
         pid[name]=len(people); v=SW[name]
-        people.append(dict(id=pid[name],n=name,be=BEN.get(name) or v.get('be'),al=v.get('al',[]),full=v.get('full'),born=v.get('born'),b=v.get('b'),w=v.get('w'),act=v.get('act',0)))
+        people.append(dict(id=pid[name],n=name,be=BEN.get(name) or v.get('be'),al=v.get('al',[]),full=v.get('full'),born=(re.match(r'\d{4}',v.get('born') or '') or [None])[0],b=v.get('b'),w=v.get('w'),act=v.get('act',0)))
     return pid[name]
 out=[];unknown=collections.Counter()
 for s in sorted(songs.values(),key=lambda s:(s['y'] or 0,s['t'])):
