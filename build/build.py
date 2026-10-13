@@ -101,6 +101,12 @@ if os.path.exists(DF):
     for line in open(DF,encoding='utf-8'):
         f=line.rstrip('\n').split('\t')
         if len(f)>=3 and re.match(r'\d{4}-\d{2}-\d{2}$',f[2].strip()): DATES[(ntitle(f[0]),akey(f[1]))]=f[2].strip()
+ONED={}
+OF=os.path.join(os.path.dirname(__file__),'..','raw','onedates.tsv')
+if os.path.exists(OF):
+    for line in open(OF,encoding='utf-8'):
+        f=line.rstrip('\n').split('\t')
+        if len(f)>=4 and f[0] in('US','UK') and re.match(r'\d{4}-\d{2}-\d{2}$',f[3].strip()): ONED[(f[0],ntitle(f[1]),akey(f[2]))]=f[3].strip()
 for s in sorted(songs.values(),key=lambda s:(s['y'] or 0,s['t'])):
     cr=collections.OrderedDict(); ow=[]; op=[]
     for n in s['w']:
@@ -118,7 +124,8 @@ for s in sorted(songs.values(),key=lambda s:(s['y'] or 0,s['t'])):
     us,uk=s['us'],s['uk']
     dt=DATES.get((ntitle(s['t']),akey(s['a'])))
     if dt and s['y'] and int(dt[:4])!=s['y']: dt=None
-    out.append(dict(id=len(out),t=s['t'],a=s['a'],y=s['y'],d=dt,us=us,uk=uk,t10=1 if (s['t10'] and not us) else 0,
+    k2=(ntitle(s['t']),akey(s['a']))
+    out.append(dict(id=len(out),t=s['t'],a=s['a'],y=s['y'],d=dt,d1us=ONED.get(('US',)+k2) if us==1 else None,d1uk=ONED.get(('UK',)+k2) if uk==1 else None,us=us,uk=uk,t10=1 if (s['t10'] and not us) else 0,
         cr=[[P(k),m] for k,m in cr.items()],ow=', '.join(ow),op=', '.join(op),ox='; '.join(f'{k} {v}' for k,v in sorted(s['ox'].items(),key=lambda x:x[1])[:5]),src=(s['src'] or [''])[0]))
 json.dump(dict(songs=out,people=people,meta=dict(sources='Engelska Wikipedia (produktionsdiskografier, låtlistor, artistdiskografier och låtartiklar)',date='oktober 2026')),
           open(sys.argv[1],'w'),ensure_ascii=False,separators=(',',':'))

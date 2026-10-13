@@ -309,6 +309,7 @@ const TX={
   startWith:"Start with",songsWithSwedes:n=>`${n} songs with Swedes`,nSwedes:n=>`${n} Swedes`,theSwedes:"The Swedes",graphAria:"Network of Swedish songwriters, producers and artists"}
 };
 let lang="sv";
+const fdate=d=>new Date(d+"T12:00").toLocaleDateString(lang==="sv"?"sv-SE":"en-GB",{year:"numeric",month:"long",day:"numeric"});
 try{const l=localStorage.getItem("shm-lang"); if(l==="en"||l==="sv") lang=l;}catch(e){}
 const t=(k,...a)=>{const v=TX[lang][k]; return typeof v==="function"?v(...a):v;};
 const fmt=n=>Number(n).toLocaleString(lang==="sv"?"sv-SE":"en-US");
@@ -397,7 +398,8 @@ function filteredSongs(){
   const q=norm($("#q-songs").value).trim().split(/\s+/).filter(Boolean);
   let r=songs.filter(s=>(!decade||(s.y>=decade&&s.y<decade+10))&&(!hitsOnly||s.best<=10)&&(!oneFilter||(oneFilter==="us1"?s.us===1:s.uk===1))&&q.every(w=>s._q.includes(w)));
   const k=$("#sort-songs").value, loc=lang;
-  const cmp={hit:(a,b)=>(a.best-b.best)||(b.cr.length-a.cr.length)||(b.y-a.y),new:(a,b)=>b.y-a.y||(b.d||'').localeCompare(a.d||'')||a.t.localeCompare(b.t,loc),old:(a,b)=>a.y-b.y||(a.d||'9').localeCompare(b.d||'9')||a.t.localeCompare(b.t,loc),title:(a,b)=>a.t.localeCompare(b.t,loc),swedes:(a,b)=>b.cr.length-a.cr.length||a.best-b.best}[k];
+  const dk=x=>oneFilter==="us1"?x.d1us:oneFilter==="uk1"?x.d1uk:null;
+  const cmp={hit:(a,b)=>(a.best-b.best)||(b.cr.length-a.cr.length)||(b.y-a.y),new:(a,b)=>(dk(b)||dk(a)?(dk(b)||'').localeCompare(dk(a)||''):0)||b.y-a.y||(b.d||'').localeCompare(a.d||'')||a.t.localeCompare(b.t,loc),old:(a,b)=>(dk(a)||dk(b)?(dk(a)||'9').localeCompare(dk(b)||'9'):0)||a.y-b.y||(a.d||'9').localeCompare(b.d||'9')||a.t.localeCompare(b.t,loc),title:(a,b)=>a.t.localeCompare(b.t,loc),swedes:(a,b)=>b.cr.length-a.cr.length||a.best-b.best}[k];
   return r.sort(cmp);
 }
 function renderSongs(){
@@ -415,7 +417,7 @@ $("#songlist").addEventListener("click",e=>{const b=e.target.closest("[data-s]")
 function showSong(id,open){
   curSong=id; const s=S.get(id);
   document.querySelectorAll("#songlist .row").forEach(r=>r.setAttribute("aria-current",+r.dataset.s===id));
-  const facts=[s.y&&t("released",s.d?new Date(s.d+"T12:00").toLocaleDateString(lang==="sv"?"sv-SE":"en-GB",{year:"numeric",month:"long",day:"numeric"}):s.y), s.us&&`Billboard Hot 100: #${s.us}`, s.t10&&t("usTop10"), s.uk&&`UK Singles: #${s.uk}`, s.ox&&t("otherCharts",s.ox)].filter(Boolean);
+  const facts=[s.y&&t("released",s.d?fdate(s.d):s.y), s.us&&`Billboard Hot 100: #${s.us}${s.d1us?" ("+fdate(s.d1us)+")":""}`, s.t10&&t("usTop10"), s.uk&&`UK Singles: #${s.uk}${s.d1uk?" ("+fdate(s.d1uk)+")":""}`, s.ox&&t("otherCharts",s.ox)].filter(Boolean);
   const main=mainArtist(s.a);
   $("#songsheet").innerHTML=`${closeBtn()}
   <div class="eyebrow">${t("song")}</div><h2>${esc(s.t)}</h2>
