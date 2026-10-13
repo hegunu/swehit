@@ -23,3 +23,7 @@ Datum då en låt först blev etta (US/UK) ligger i `raw/onedates.tsv` (chart, t
 Data: `data/latar.csv`, `data/personer.csv`.
 
 Kontakt: hitmakare@hegu.nu
+
+## Vilka låtar är med
+
+En låt är med om den 1) nått en topplista utanför Sverige, 2) är skriven eller producerad av svenskar åt en internationell artist, eller 3) står som undantag i `raw/cult.tsv` (kultlåtar, filmmusik, Ghosts rocklisteettor m.m.). Låtar av svenska artister som bara gått i Sverige sorteras bort och listas i `dropped.tsv`.

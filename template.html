@@ -97,6 +97,7 @@ select,.chip{border:1px solid var(--rule);background:var(--sheet);color:var(--in
 .sheet h2{font-size:30px;line-height:1.08;letter-spacing:-.02em;margin:6px 0 4px;text-wrap:balance}
 .sheet .by{font-family:var(--f-body);font-size:18px;color:var(--ink-2)}
 .sheet .by button{all:unset;cursor:pointer;color:var(--ink);border-bottom:1px dotted var(--ink-3)}
+.why{margin:6px 0 2px;font-size:14px;color:var(--ink-3)}
 .facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 4px;font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
 .sec{margin-top:20px}
 .sec h3{font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
@@ -277,7 +278,7 @@ const TX={
   foot:(src,d)=>`Källor: ${src}. Insamlat ${d}. Listplaceringar gäller Billboard Hot 100 (US) och UK Singles Chart där de fanns angivna. Vem som räknas som svensk bygger på födelseort, uppväxt eller medborgarskap enligt Wikipedia och andra källor. Sidan är sammanställd automatiskt från offentliga källor och kan innehålla fel. Hittar du något som är fel? Mejla <a href="mailto:hitmakare@hegu.nu">hitmakare@hegu.nu</a> eller <a href="https://github.com/hegunu/swehit/issues">skicka en rättelse på GitHub</a>.`,
   src:"Engelska Wikipedia (produktionsdiskografier, låtlistor, artistdiskografier och låtartiklar)",date:"oktober 2026",
   top10:"Topp 10",close:"Stäng",allYears:"Alla år",decade:d=>`${String(d).slice(2)}-tal`,nSongs:n=>`${fmt(n)} låtar`,noSongs:"Inga låtar matchar sökningen.",
-  song:"Låt",released:y=>`Utgiven ${y}`,usTop10:"Billboard Hot 100: topp 10",statHint:"Klicka för att visa",onlyUS1:"Bara USA-ettor",onlyUK1:"Bara UK-ettor",otherCharts:x=>`Andra listor: ${x}`,swedesIn:n=>`Svenskar på krediterna (${n})`,inColl:n=>`${n} låtar i samlingen`,
+  song:"Låt",whyC:"Med för att låten nått listorna utanför Sverige.",whyI:a=>`Med för att svenskar skrivit eller producerat för en internationell artist (${a}).`,whyK:"Med som undantag: ",released:y=>`Utgiven ${y}`,usTop10:"Billboard Hot 100: topp 10",statHint:"Klicka för att visa",onlyUS1:"Bara USA-ettor",onlyUK1:"Bara UK-ettor",otherCharts:x=>`Andra listor: ${x}`,swedesIn:n=>`Svenskar på krediterna (${n})`,inColl:n=>`${n} låtar i samlingen`,
   otherCr:"Övriga på krediterna",writtenBy:"Text & musik",producedBy:"Produktion",source:"Källa",youtube:"Lyssna på YouTube",moreBy:a=>`Fler låtar med ${a}`,
   nPeople:n=>`${n} personer`,noPeople:"Ingen person matchar.",nTop10:n=>`${n} topp 10`,nOnes:n=>`${n} listettor`,born:b=>`Född ${b}`,
   perYear:"Låtar per år",perYearAria:(a,b)=>`Låtar per år ${a}–${b}`,peakYear:n=>`högst ${n} på ett år`,artists:"Artister",oftenWith:"Jobbar ofta med",
@@ -298,7 +299,7 @@ const TX={
   foot:(src,d)=>`Sources: ${src}. Collected ${d}. Chart positions refer to the Billboard Hot 100 (US) and UK Singles Chart where listed. Who counts as Swedish is based on birthplace, upbringing or citizenship according to Wikipedia and other sources. This page is compiled automatically from public sources and may contain errors. Spotted a mistake? Email <a href="mailto:hitmakare@hegu.nu">hitmakare@hegu.nu</a> or <a href="https://github.com/hegunu/swehit/issues">send a correction on GitHub</a>.`,
   src:"English Wikipedia (production discographies, song lists, artist discographies and song articles)",date:"October 2026",
   top10:"Top 10",close:"Close",allYears:"All years",decade:d=>`${String(d).slice(2)}s`,nSongs:n=>`${fmt(n)} songs`,noSongs:"No songs match your search.",
-  song:"Song",released:y=>`Released ${y}`,usTop10:"Billboard Hot 100: top 10",statHint:"Click to show",onlyUS1:"US number ones only",onlyUK1:"UK number ones only",otherCharts:x=>`Other charts: ${x}`,swedesIn:n=>`Swedes in the credits (${n})`,inColl:n=>`${n} songs in the collection`,
+  song:"Song",whyC:"Included because it charted outside Sweden.",whyI:a=>`Included because Swedes wrote or produced it for an international artist (${a}).`,whyK:"Included as an exception: ",released:y=>`Released ${y}`,usTop10:"Billboard Hot 100: top 10",statHint:"Click to show",onlyUS1:"US number ones only",onlyUK1:"UK number ones only",otherCharts:x=>`Other charts: ${x}`,swedesIn:n=>`Swedes in the credits (${n})`,inColl:n=>`${n} songs in the collection`,
   otherCr:"Other credits",writtenBy:"Written by",producedBy:"Produced by",source:"Source",youtube:"Listen on YouTube",moreBy:a=>`More songs by ${a}`,
   nPeople:n=>`${n} people`,noPeople:"No one matches.",nTop10:n=>`${n} top 10`,nOnes:n=>`${n} No. 1s`,born:b=>`Born ${b.replace("död","died")}`,
   perYear:"Songs per year",perYearAria:(a,b)=>`Songs per year ${a}–${b}`,peakYear:n=>`peak ${n} in one year`,artists:"Artists",oftenWith:"Often works with",
@@ -309,6 +310,7 @@ const TX={
   startWith:"Start with",songsWithSwedes:n=>`${n} songs with Swedes`,nSwedes:n=>`${n} Swedes`,theSwedes:"The Swedes",graphAria:"Network of Swedish songwriters, producers and artists"}
 };
 let lang="sv";
+const whyText=s=>s.why==="k"&&s.kn?t("whyK")+(lang==="sv"?s.kn[0]:s.kn[1]):s.why==="c"?t("whyC"):t("whyI",s.a);
 const fdate=d=>new Date(d+"T12:00").toLocaleDateString(lang==="sv"?"sv-SE":"en-GB",{year:"numeric",month:"long",day:"numeric"});
 try{const l=localStorage.getItem("shm-lang"); if(l==="en"||l==="sv") lang=l;}catch(e){}
 const t=(k,...a)=>{const v=TX[lang][k]; return typeof v==="function"?v(...a):v;};
@@ -423,6 +425,7 @@ function showSong(id,open){
   <div class="eyebrow">${t("song")}</div><h2>${esc(s.t)}</h2>
   <div class="by">${esc(s.a)}</div>
   <div class="facts">${facts.map(f=>`<span>${esc(f)}</span>`).join("")}</div>
+  <p class="why">${esc(whyText(s))}</p>
   <div class="sec"><h3>${t("swedesIn",s.cr.length)}</h3><div class="credits">
   ${s.cr.map(([pid,m])=>{const p=P.get(pid);return `<button class="credit" data-p="${pid}">${ini(p)}<span style="min-width:0"><b>${esc(p.n)}</b><small>${t("inColl",p.songs.length)}</small></span><span class="role">${roleText(m)}</span></button>`}).join("")}
   </div></div>
