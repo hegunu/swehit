@@ -508,6 +508,7 @@ $("#mode-sw").onclick=()=>{graphMode="sw";$("#mode-sw").setAttribute("aria-press
 $("#q-graph").addEventListener("change",e=>{const v=e.target.value.trim();const n=gNodes.find(n=>n.label===v)||gNodes.find(n=>norm(n.label).includes(norm(v)));if(n)focusGraph(n.id);else{const p=active.find(p=>p._q.includes(norm(v)));if(p)focusGraph("p"+p.id);}});
 const swedeNames=new Set(people.flatMap(p=>[p.n,...(p.al||[])].map(norm)));
 let labelSet=new Set();
+const extraArts=new Set();
 function graphData(){
   const N=+$("#gsize").value, top=active.slice(0,N), set=new Set(top.map(p=>p.id));
   const nodes=[], links=[];
@@ -518,6 +519,7 @@ function graphData(){
     let arts=[...am.values()].filter(a=>a.deg>=2||a.w>=3).sort((a,b)=>b.w-a.w).slice(0,Math.round(N*2.2));
     const keep=new Set(arts.map(a=>a.id));
     top.forEach(p=>{const best=artistsOf(p).filter(([a])=>!swedeNames.has(norm(a))).slice(0,2);best.forEach(([a])=>{const k="a"+a;if(!keep.has(k)){keep.add(k);arts.push(am.get(k));}});});
+    extraArts.forEach(k=>{if(am.has(k)&&!keep.has(k)){keep.add(k);arts.push(am.get(k));}});
     nodes.push(...arts);
     const ls=links.filter(l=>keep.has(l.target)), linked=new Set(ls.map(l=>l.source));
     return {nodes:nodes.filter(n=>n.kind==="a"||linked.has(n.id)),links:ls};
@@ -599,6 +601,12 @@ function focusGraph(id,zoom=true){
   let n=gNodes.find(n=>n.id===id);
   if(!n && id[0]==="p"){
     const idx=active.findIndex(p=>"p"+p.id===id); if(idx>=0){const v=Math.min(120,Math.max(idx+1,+$("#gsize").value));$("#gsize").value=v;$("#gsizev").textContent=v;buildGraph();n=gNodes.find(n=>n.id===id);}
+  }
+  if(!n && id[0]==="a"){
+    const name=id.slice(1), sp=active.find(p=>norm(p.n)===norm(name)||(p.al||[]).some(x=>norm(x)===norm(name)));
+    if(sp) return focusGraph("p"+sp.id,zoom);
+    extraArts.add(id); buildGraph(); n=gNodes.find(n=>n.id===id);
+    if(!n){ extraArts.delete(id); go("latar");$("#q-songs").value=name;songLimit=80;renderSongs(); return; }
   }
   if(!n) return;
   gsel=id; applyFocus(); graphSheet(n);
