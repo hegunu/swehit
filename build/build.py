@@ -60,7 +60,7 @@ for r in rows():
     if us: s['us']=us if s['us'] is None else min(s['us'],us)
     if uk: s['uk']=uk if s['uk'] is None else min(s['uk'],uk)
     s['t10']|=t10
-    for m in re.finditer(r'\b(SWE|DE|GER|NL|NOR|BEL|AUT|SWI|AUS|CAN|IRE|JPN|FRA|ITA|DEN|FIN|NZ|ESP)\s*(\d+)\b',r.get('peak') or ''):
+    for m in re.finditer(r'\b(SWE|DE|GER|NL|NOR|BEL|AUT|SWI|AUS|CAN|IRE|JPN|FRA|ITA|DEN|FIN|NZ|ESP|KOR)\s*(\d+)\b',r.get('peak') or ''):
         c=m.group(1).replace('GER','DE'); v=int(m.group(2))
         s['ox'][c]=min(s['ox'].get(c,999),v)
     for u in re.split(r'\s*[|;]\s*',r.get('source') or ''):

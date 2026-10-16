@@ -27,3 +27,5 @@ Kontakt: hitmakare@hegu.nu
 ## Vilka låtar är med
 
 En låt är med om den 1) nått en topplista utanför Sverige, 2) är skriven eller producerad av svenskar åt en internationell artist, eller 3) står som undantag i `raw/cult.tsv` (kultlåtar, filmmusik, Ghosts rocklisteettor m.m.). Låtar av svenska artister som bara gått i Sverige sorteras bort och listas i `dropped.tsv`.
+
+K-pop och J-pop (`raw/kpop_sm.tsv`, `raw/kpop_other.tsv`, `raw/jpop.tsv`) samlades in i oktober 2026 och är ofullständiga: många rader har bara den svenska låtskrivaren i kreditlistan, och flera akter (äldre K-pop, Seventeen, (G)I-dle, Ateez, Snow Man, SixTONES m.fl.) saknas. Koreanska listan räknas som KOR.
