@@ -140,6 +140,24 @@ for s in sorted(songs.values(),key=lambda s:(s['y'] or 0,s['t'])):
     if dt and s['y'] and int(dt[:4])!=s['y']: dt=None
     out.append(dict(id=len(out),t=s['t'],a=s['a'],y=s['y'],d=dt,d1us=ONED.get(('US',)+k2) if us==1 else None,d1uk=ONED.get(('UK',)+k2) if uk==1 else None,us=us,uk=uk,t10=1 if (s['t10'] and not us) else 0,
         cr=[[P(k),m] for k,m in cr.items()],ow=', '.join(ow),op=', '.join(op),ox='; '.join(f'{k} {v}' for k,v in sorted(s['ox'].items(),key=lambda x:x[1])[:5]),src=(s['src'] or [''])[0],why=why,kn=cult))
+# albums charting outside Sweden: raw/albums*.tsv (artist, year, album, peak, source)
+ORD=['US','UK','JPN','DE','NL','NOR','DEN','FIN','AUS','AUT','SWI','BEL','CAN','FRA','ITA','NZ','ESP','IRE','KOR','SWE']
+for f in sorted(glob.glob(os.path.join(os.path.dirname(__file__),'..','raw','albums*.tsv'))):
+    with open(f,encoding='utf-8') as fh:
+        for r in csv.DictReader(fh,delimiter='\t',quoting=csv.QUOTE_NONE):
+            k=who((r.get('artist') or '').strip())
+            if not k or k not in pid: continue
+            pk={}
+            for m in re.finditer(r'\b(US|UK|SWE|DE|GER|NL|NOR|BEL|AUT|SWI|AUS|CAN|IRE|JPN|FRA|ITA|DEN|FIN|NZ|ESP|KOR)\s*(\d+)\b',r.get('peak') or ''):
+                c=m.group(1).replace('GER','DE'); pk[c]=min(pk.get(c,999),int(m.group(2)))
+            if not any(c!='SWE' for c in pk): continue
+            pe=people[pid[k]]; al=pe.setdefault('alb',[])
+            t=(r.get('album') or '').strip()
+            if any(a[1].lower()==t.lower() for a in al): continue
+            y=re.match(r'\d{4}',r.get('year') or '')
+            al.append([int(y.group()) if y else None,t,'; '.join(f'{c} {pk[c]}' for c in ORD if c in pk),(r.get('source') or '').strip()])
+for pe in people:
+    if pe.get('alb'): pe['alb'].sort(key=lambda a:(a[0] or 0))
 json.dump(dict(songs=out,people=people,meta=dict(sources='Engelska Wikipedia (produktionsdiskografier, låtlistor, artistdiskografier och låtartiklar)',date='oktober 2026')),
           open(sys.argv[1],'w'),ensure_ascii=False,separators=(',',':'))
 open(os.path.join(os.path.dirname(__file__),'..','dropped.tsv'),'w').write('\n'.join(dropped)+'\n')

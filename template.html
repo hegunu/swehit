@@ -114,6 +114,7 @@ select,.chip{border:1px solid var(--rule);background:var(--sheet);color:var(--in
 .mini{list-style:none;margin:0;padding:0}
 .mini li button{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-2);padding:7px 2px;cursor:pointer}
 .mini li button:hover{color:var(--blue)}
+.mini.alb li{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;border-bottom:1px solid var(--rule-2);padding:7px 2px}
 .pills{display:flex;flex-wrap:wrap;gap:6px}
 .pill{border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer}
 .pill:hover{border-color:var(--blue);color:var(--blue)}
@@ -280,7 +281,7 @@ const TX={
   top10:"Topp 10",close:"Stäng",allYears:"Alla år",decade:d=>`${String(d).slice(2)}-tal`,nSongs:n=>`${fmt(n)} låtar`,noSongs:"Inga låtar matchar sökningen.",
   song:"Låt",whyC:"Med för att låten nått listorna utanför Sverige.",whyI:a=>`Med för att svenskar skrivit eller producerat för en internationell artist (${a}).`,whyK:"Med som undantag: ",released:y=>`Utgiven ${y}`,usTop10:"Billboard Hot 100: topp 10",statHint:"Klicka för att visa",onlyUS1:"Bara USA-ettor",onlyUK1:"Bara UK-ettor",otherCharts:x=>`Andra listor: ${x}`,swedesIn:n=>`Svenskar på krediterna (${n})`,inColl:n=>`${n} låtar i samlingen`,
   otherCr:"Övriga på krediterna",writtenBy:"Text & musik",producedBy:"Produktion",source:"Källa",youtube:"YouTube",moreBy:a=>`Fler låtar med ${a}`,
-  nPeople:n=>`${n} personer`,noPeople:"Ingen person matchar.",nTop10:n=>`${n} topp 10`,nOnes:n=>`${n} listettor`,born:b=>`Född ${b}`,
+  nPeople:n=>`${n} personer`,noPeople:"Ingen person matchar.",nTop10:n=>`${n} topp 10`,nOnes:n=>`${n} listettor`,albums:"Album på listor utanför Sverige",born:b=>`Född ${b}`,
   perYear:"Låtar per år",perYearAria:(a,b)=>`Låtar per år ${a}–${b}`,peakYear:n=>`högst ${n} på ett år`,artists:"Artister",oftenWith:"Jobbar ofta med",
   songs:"Låtar",songsTop:n=>`Låtar (topp ${n})`,showNet:"Visa i nätverket",openProfile:"Öppna personsidan",
   network:"Nätverket",whoWho:"Vem har jobbat med vem",teams:"Svenska team",
@@ -301,7 +302,7 @@ const TX={
   top10:"Top 10",close:"Close",allYears:"All years",decade:d=>`${String(d).slice(2)}s`,nSongs:n=>`${fmt(n)} songs`,noSongs:"No songs match your search.",
   song:"Song",whyC:"Included because it charted outside Sweden.",whyI:a=>`Included because Swedes wrote or produced it for an international artist (${a}).`,whyK:"Included as an exception: ",released:y=>`Released ${y}`,usTop10:"Billboard Hot 100: top 10",statHint:"Click to show",onlyUS1:"US number ones only",onlyUK1:"UK number ones only",otherCharts:x=>`Other charts: ${x}`,swedesIn:n=>`Swedes in the credits (${n})`,inColl:n=>`${n} songs in the collection`,
   otherCr:"Other credits",writtenBy:"Written by",producedBy:"Produced by",source:"Source",youtube:"YouTube",moreBy:a=>`More songs by ${a}`,
-  nPeople:n=>`${n} people`,noPeople:"No one matches.",nTop10:n=>`${n} top 10`,nOnes:n=>`${n} No. 1s`,born:b=>`Born ${b.replace("död","died")}`,
+  nPeople:n=>`${n} people`,noPeople:"No one matches.",nTop10:n=>`${n} top 10`,nOnes:n=>`${n} No. 1s`,albums:"Albums charting outside Sweden",born:b=>`Born ${b.replace("död","died")}`,
   perYear:"Songs per year",perYearAria:(a,b)=>`Songs per year ${a}–${b}`,peakYear:n=>`peak ${n} in one year`,artists:"Artists",oftenWith:"Often works with",
   songs:"Songs",songsTop:n=>`Songs (top ${n})`,showNet:"Show in network",openProfile:"Open profile",
   network:"The network",whoWho:"Who worked with whom",teams:"Swedish teams",
@@ -470,6 +471,8 @@ function spark(p){
   <line x1="0" x2="${W}" y1="${H-14}" y2="${H-14}" stroke="var(--rule)"/>
   <text x="0" y="${H-2}">${lo}</text><text x="${W}" y="${H-2}" text-anchor="end">${hi}</text><text x="${W/2}" y="${H-2}" text-anchor="middle">${t("peakYear",mx)}</text></svg>`;
 }
+const CC={US:["USA","US"],UK:["Storbritannien","UK"],JPN:["Japan","Japan"],DE:["Tyskland","Germany"],NL:["Nederländerna","Netherlands"],NOR:["Norge","Norway"],DEN:["Danmark","Denmark"],FIN:["Finland","Finland"],AUS:["Australien","Australia"],AUT:["Österrike","Austria"],SWI:["Schweiz","Switzerland"],BEL:["Belgien","Belgium"],CAN:["Kanada","Canada"],FRA:["Frankrike","France"],ITA:["Italien","Italy"],NZ:["Nya Zeeland","New Zealand"],ESP:["Spanien","Spain"],IRE:["Irland","Ireland"],KOR:["Sydkorea","South Korea"],SWE:["Sverige","Sweden"]};
+const albPeaks=x=>x.split("; ").map(v=>{const [c,n]=v.split(" ");return `${(CC[c]||[c,c])[lang==="en"?1:0]} #${n}`}).join(" · ");
 function personHTML(p, compact){
   const col=collaborators(p).slice(0,14), arts=artistsOf(p).slice(0,18);
   const lim=compact?12:400, fn=fullName(p), b=bio(p);
@@ -479,6 +482,7 @@ function personHTML(p, compact){
   <div class="facts"><span>${t("nSongs",p.songs.length)}</span>${p.hits?`<span>${t("nTop10",p.hits)}</span>`:""}${p.ones?`<span>${t("nOnes",p.ones)}</span>`:""}${p.born?`<span>${esc(t("born",p.born))}</span>`:""}</div>
   ${b?`<p class="bio">${esc(b)}</p>`:""}
   <div class="sec"><h3>${t("perYear")} <span style="color:var(--hit)">■</span> ${t("top10").toLowerCase()}</h3>${spark(p)}</div>
+  ${p.alb&&p.alb.length?`<div class="sec"><h3>${t("albums")}</h3><ul class="mini alb">${p.alb.map(a=>`<li><span class="yr">${a[0]||""}</span><span style="min-width:0"><div class="tt">${esc(a[1])}</div><div class="ar">${esc(albPeaks(a[2]))}</div></span></li>`).join("")}</ul></div>`:""}
   ${arts.length?`<div class="sec"><h3>${t("artists")}</h3><div class="pills">${arts.map(([a,n])=>`<button class="pill" data-artist="${esc(a)}">${esc(a)}<i>${n}</i></button>`).join("")}</div></div>`:""}
   ${col.length?`<div class="sec"><h3>${t("oftenWith")}</h3><div class="pills">${col.map(([q,n])=>`<button class="pill" data-p="${q}">${esc(P.get(q).n)}<i>${n}</i></button>`).join("")}</div></div>`:""}
   <div class="sec"><h3>${p.songs.length>lim?t("songsTop",lim):t("songs")}</h3><ul class="mini">${p.songs.slice(0,lim).map(s=>{const m=s.cr.find(c=>c[0]===p.id)[1];return `<li><button data-s="${s.id}"><span class="yr">${s.y||""}</span><span style="min-width:0"><div class="tt">${esc(s.t)}${hitBadge(s)}</div><div class="ar">${esc(s.a)}</div></span><span class="role">${roleText(m)}</span></button></li>`}).join("")}</ul></div>
