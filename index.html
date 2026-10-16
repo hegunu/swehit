@@ -427,7 +427,7 @@ const TX={
   src:"Engelska Wikipedia (produktionsdiskografier, låtlistor, artistdiskografier och låtartiklar)",date:"oktober 2026",
   top10:"Topp 10",close:"Stäng",allYears:"Alla år",decade:d=>`${String(d).slice(2)}-tal`,nSongs:n=>`${fmt(n)} låtar`,noSongs:"Inga låtar matchar sökningen.",
   song:"Låt",whyC:"Med för att låten nått listorna utanför Sverige.",whyI:a=>`Med för att svenskar skrivit eller producerat för en internationell artist (${a}).`,whyK:"Med som undantag: ",released:y=>`Utgiven ${y}`,usTop10:"Billboard Hot 100: topp 10",statHint:"Klicka för att visa",onlyUS1:"Bara USA-ettor",onlyUK1:"Bara UK-ettor",otherCharts:x=>`Andra listor: ${x}`,swedesIn:n=>`Svenskar på krediterna (${n})`,inColl:n=>`${n} låtar i samlingen`,
-  otherCr:"Övriga på krediterna",writtenBy:"Text & musik",producedBy:"Produktion",source:"Källa",youtube:"Lyssna på YouTube",moreBy:a=>`Fler låtar med ${a}`,
+  otherCr:"Övriga på krediterna",writtenBy:"Text & musik",producedBy:"Produktion",source:"Källa",youtube:"YouTube",moreBy:a=>`Fler låtar med ${a}`,
   nPeople:n=>`${n} personer`,noPeople:"Ingen person matchar.",nTop10:n=>`${n} topp 10`,nOnes:n=>`${n} listettor`,born:b=>`Född ${b}`,
   perYear:"Låtar per år",perYearAria:(a,b)=>`Låtar per år ${a}–${b}`,peakYear:n=>`högst ${n} på ett år`,artists:"Artister",oftenWith:"Jobbar ofta med",
   songs:"Låtar",songsTop:n=>`Låtar (topp ${n})`,showNet:"Visa i nätverket",openProfile:"Öppna personsidan",
@@ -448,7 +448,7 @@ const TX={
   src:"English Wikipedia (production discographies, song lists, artist discographies and song articles)",date:"October 2026",
   top10:"Top 10",close:"Close",allYears:"All years",decade:d=>`${String(d).slice(2)}s`,nSongs:n=>`${fmt(n)} songs`,noSongs:"No songs match your search.",
   song:"Song",whyC:"Included because it charted outside Sweden.",whyI:a=>`Included because Swedes wrote or produced it for an international artist (${a}).`,whyK:"Included as an exception: ",released:y=>`Released ${y}`,usTop10:"Billboard Hot 100: top 10",statHint:"Click to show",onlyUS1:"US number ones only",onlyUK1:"UK number ones only",otherCharts:x=>`Other charts: ${x}`,swedesIn:n=>`Swedes in the credits (${n})`,inColl:n=>`${n} songs in the collection`,
-  otherCr:"Other credits",writtenBy:"Written by",producedBy:"Produced by",source:"Source",youtube:"Listen on YouTube",moreBy:a=>`More songs by ${a}`,
+  otherCr:"Other credits",writtenBy:"Written by",producedBy:"Produced by",source:"Source",youtube:"YouTube",moreBy:a=>`More songs by ${a}`,
   nPeople:n=>`${n} people`,noPeople:"No one matches.",nTop10:n=>`${n} top 10`,nOnes:n=>`${n} No. 1s`,born:b=>`Born ${b.replace("död","died")}`,
   perYear:"Songs per year",perYearAria:(a,b)=>`Songs per year ${a}–${b}`,peakYear:n=>`peak ${n} in one year`,artists:"Artists",oftenWith:"Often works with",
   songs:"Songs",songsTop:n=>`Songs (top ${n})`,showNet:"Show in network",openProfile:"Open profile",
@@ -578,7 +578,7 @@ function showSong(id,open){
   ${s.cr.map(([pid,m])=>{const p=P.get(pid);return `<button class="credit" data-p="${pid}">${ini(p)}<span style="min-width:0"><b>${esc(p.n)}</b><small>${t("inColl",p.songs.length)}</small></span><span class="role">${roleText(m)}</span></button>`}).join("")}
   </div></div>
   ${(s.ow||s.op)?`<div class="sec"><h3>${t("otherCr")}</h3><div class="others">${s.ow?`<div><b>${t("writtenBy")}</b>${esc(s.ow)}</div>`:""}${s.op?`<div><b>${t("producedBy")}</b>${esc(s.op)}</div>`:""}</div></div>`:""}
-  <div class="actions">${s.src?`<a class="btn ghost" href="${esc(s.src)}" target="_blank" rel="noopener">${t("source")}</a>`:""}<a class="btn ghost" href="https://www.youtube.com/results?search_query=${encodeURIComponent(main+" "+s.t)}" target="_blank" rel="noopener">${t("youtube")}</a><button class="btn" data-artist="${esc(main)}">${esc(t("moreBy",main))}</button></div>`;
+  <div class="actions">${s.src?`<a class="btn ghost" href="${esc(s.src)}" target="_blank" rel="noopener">${t("source")}</a>`:""}<a class="btn ghost" href="https://www.youtube.com/results?search_query=${encodeURIComponent(main+" "+s.t)}" target="_blank" rel="noopener">${t("youtube")}</a><a class="btn ghost" href="https://open.spotify.com/search/${encodeURIComponent(main+" "+s.t)}" target="_blank" rel="noopener">Spotify</a><a class="btn ghost" href="https://listen.tidal.com/search?q=${encodeURIComponent(main+" "+s.t)}" target="_blank" rel="noopener">Tidal</a><button class="btn" data-artist="${esc(main)}">${esc(t("moreBy",main))}</button></div>`;
   if(open) openSheet($("#songsheet"));
 }
 $("#songsheet").addEventListener("click",e=>{
